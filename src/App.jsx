@@ -115,7 +115,7 @@ const App = () => {
                         Universal Time Coordinated
                     </div>
                     <div className="clock-time">{time.toISOString().slice(11, 19)}</div>
-                    <div className="clock-label" style={{ marginTop: '1rem' }}>{format(time, 'yyyy-MM-dd')} UTC</div>
+                    <div className="clock-label" style={{ marginTop: '1rem' }}>{format(time, 'd-M-yyyy')} UTC</div>
                 </div>
             </div>
 
@@ -123,7 +123,7 @@ const App = () => {
             <div className="glass-card local-time-section">
                 <div className="clock-label">Local Station Time</div>
                 <div className="local-time">{format(time, 'HH:mm:ss')}</div>
-                <div className="clock-label" style={{ fontSize: '0.8rem', marginTop: '0.5rem' }}>{format(time, 'PPPP')}</div>
+                <div className="clock-label" style={{ fontSize: '0.8rem', marginTop: '0.5rem' }}>{format(time, 'EEEE, d MMMM yyyy')}</div>
             </div>
 
             {/* CONTEST TIMER */}
