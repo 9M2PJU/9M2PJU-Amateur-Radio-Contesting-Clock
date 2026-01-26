@@ -29,16 +29,40 @@ const App = () => {
         conditions: '...'
     });
 
+    // Maidenhead Grid Square Calculation
+    const calculateGridSquare = (lat, lon) => {
+        const l = parseFloat(lon) + 180;
+        const b = parseFloat(lat) + 90;
+
+        const field1 = String.fromCharCode(65 + Math.floor(l / 20));
+        const field2 = String.fromCharCode(65 + Math.floor(b / 10));
+
+        const square1 = Math.floor((l % 20) / 2);
+        const square2 = Math.floor(b % 10);
+
+        const sub1 = String.fromCharCode(97 + Math.floor((l % 2) * 12));
+        const sub2 = String.fromCharCode(97 + Math.floor((b % 1) * 24));
+
+        return (field1 + field2 + square1 + square2 + sub1 + sub2).toUpperCase();
+    };
+
     // Geolocation Hook
     useEffect(() => {
         if ("geolocation" in navigator) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    const calculatedGrid = calculateGridSquare(lat, lon).slice(0, 6);
+
                     setLocation({
-                        lat: position.coords.latitude.toFixed(4),
-                        lon: position.coords.longitude.toFixed(4),
+                        lat: lat.toFixed(4),
+                        lon: lon.toFixed(4),
                         manual: false
                     });
+
+                    // Auto-update grid square if not manually overridden or first run
+                    setGridSquare(calculatedGrid);
                 },
                 (error) => {
                     console.log("Geolocation error:", error);
@@ -52,7 +76,6 @@ const App = () => {
     useEffect(() => {
         const fetchSolarData = async () => {
             try {
-                // Using allOrigins proxy to bypass CORS for HamQSL XML
                 const proxyUrl = "https://api.allorigins.win/get?url=";
                 const targetUrl = encodeURIComponent("https://www.hamqsl.com/solarxml.php");
                 const response = await fetch(proxyUrl + targetUrl);
@@ -67,7 +90,6 @@ const App = () => {
                 const k = xmlDoc.getElementsByTagName("kindex")[0]?.textContent || "...";
                 const updated = xmlDoc.getElementsByTagName("updated")[0]?.textContent || "...";
 
-                // Get general conditions from the calculated conditions tag
                 const condTag = xmlDoc.getElementsByTagName("calculatedconditions")[0];
                 let condText = "GOOD";
                 if (condTag) {
@@ -90,7 +112,7 @@ const App = () => {
         };
 
         fetchSolarData();
-        const interval = setInterval(fetchSolarData, 1800000); // Update every 30 mins
+        const interval = setInterval(fetchSolarData, 1800000);
         return () => clearInterval(interval);
     }, []);
 
