@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Maximize2, Minimize2, Radio, Trophy, Sun, Info, Settings, X, Heart } from 'lucide-react';
+import { Maximize2, Minimize2, Radio, Trophy, Sun, Info, Settings, Heart, MapPin } from 'lucide-react';
 import { format, differenceInSeconds } from 'date-fns';
 
 const App = () => {
@@ -9,6 +9,7 @@ const App = () => {
 
     // Settings with LocalStorage persistence
     const [callsign, setCallsign] = useState(() => localStorage.getItem('callsign') || '9M2PJU');
+    const [gridSquare, setGridSquare] = useState(() => localStorage.getItem('gridSquare') || 'OJ03');
     const [targetDateStr, setTargetDateStr] = useState(() => {
         const saved = localStorage.getItem('targetDate');
         if (saved) return saved;
@@ -44,12 +45,15 @@ const App = () => {
         e.preventDefault();
         const form = e.target;
         const newCallsign = form.callsign.value.toUpperCase();
+        const newGrid = form.gridSquare.value.toUpperCase();
         const newTarget = form.targetDate.value;
 
         setCallsign(newCallsign);
+        setGridSquare(newGrid);
         setTargetDateStr(newTarget);
 
         localStorage.setItem('callsign', newCallsign);
+        localStorage.setItem('gridSquare', newGrid);
         localStorage.setItem('targetDate', newTarget);
         setShowSettings(false);
     };
@@ -174,11 +178,11 @@ const App = () => {
                     </div>
                     <div className="glass-card" style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)' }}>
                         <div className="clock-label" style={{ fontSize: '0.7rem' }}>GRID SQUARE</div>
-                        <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--secondary)' }}>OJ03</div>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--secondary)' }}>{gridSquare}</div>
                     </div>
                     <div className="glass-card" style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)' }}>
-                        <div className="clock-label" style={{ fontSize: '0.7rem' }}>LAT/LON</div>
-                        <div style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>3.13° N, 101.68° E</div>
+                        <div className="clock-label" style={{ fontSize: '0.7rem' }}>LOCATION INFO</div>
+                        <div style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>Station OJ03</div>
                     </div>
                 </div>
                 <div style={{ marginTop: '1.5rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1rem' }}>
@@ -198,6 +202,10 @@ const App = () => {
                             <div className="form-group">
                                 <label>Station Callsign</label>
                                 <input type="text" name="callsign" defaultValue={callsign} placeholder="e.g. 9M2PJU" required />
+                            </div>
+                            <div className="form-group">
+                                <label>Grid Square</label>
+                                <input type="text" name="gridSquare" defaultValue={gridSquare} placeholder="e.g. OJ03" required />
                             </div>
                             <div className="form-group">
                                 <label>Contest End (Local Time)</label>
