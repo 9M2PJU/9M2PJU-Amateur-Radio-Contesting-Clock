@@ -222,7 +222,7 @@ const App = () => {
 
             {/* FOOTER */}
             <footer className="footer">
-                Made with <Heart size={12} fill="currentColor" color="#ff3e3e" style={{ verticalAlign: 'middle', margin: '0 2px' }} /> by 9M2PJU | <a href="https://hamradio.my" target="_blank" rel="noopener noreferrer">HAMRADIO.MY</a>
+                Made with <Heart size={12} fill="currentColor" color="#ff3e3e" style={{ verticalAlign: 'middle', margin: '0 2px' }} /> by <a href="https://hamradio.my" target="_blank" rel="noopener noreferrer">9M2PJU</a> | HAMRADIO.MY
             </footer>
         </div>
     );
