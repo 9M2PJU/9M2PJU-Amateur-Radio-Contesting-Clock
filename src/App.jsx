@@ -26,7 +26,8 @@ const App = () => {
         a: '...',
         k: '...',
         updated: 'Fetching...',
-        conditions: '...'
+        conditions: '...',
+        bands: []
     });
 
     // Maidenhead Grid Square Calculation
@@ -61,7 +62,6 @@ const App = () => {
                         manual: false
                     });
 
-                    // Auto-update grid square if not manually overridden or first run
                     setGridSquare(calculatedGrid);
                 },
                 (error) => {
@@ -90,6 +90,13 @@ const App = () => {
                 const k = xmlDoc.getElementsByTagName("kindex")[0]?.textContent || "...";
                 const updated = xmlDoc.getElementsByTagName("updated")[0]?.textContent || "...";
 
+                const bandElements = xmlDoc.getElementsByTagName("band");
+                const bands = Array.from(bandElements).map(el => ({
+                    name: el.getAttribute("name"),
+                    time: el.getAttribute("time"),
+                    status: el.textContent
+                }));
+
                 const condTag = xmlDoc.getElementsByTagName("calculatedconditions")[0];
                 let condText = "GOOD";
                 if (condTag) {
@@ -103,7 +110,8 @@ const App = () => {
                     a: a.trim(),
                     k: k.trim(),
                     updated: updated.trim(),
-                    conditions: condText.toUpperCase()
+                    conditions: condText.toUpperCase(),
+                    bands: bands
                 });
             } catch (error) {
                 console.error("Error fetching solar data:", error);
@@ -185,6 +193,15 @@ const App = () => {
         }
     }, [time, solarData]);
 
+    const getStatusColor = (status) => {
+        switch (status?.toLowerCase()) {
+            case 'good': return '#00f2ff';
+            case 'fair': return '#ff9d00';
+            case 'poor': return '#ff3e3e';
+            default: return 'var(--text-dim)';
+        }
+    };
+
     return (
         <div className="dashboard">
             <div style={{ position: 'fixed', top: '1rem', right: '1rem', display: 'flex', gap: '0.5rem', zIndex: 100 }}>
@@ -194,6 +211,12 @@ const App = () => {
                 <button className="fullscreen-btn" style={{ position: 'static' }} onClick={toggleFullscreen}>
                     {isFullscreen ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
                 </button>
+            </div>
+
+            {/* BRANDING LOGO */}
+            <div style={{ position: 'fixed', top: '1rem', left: '1rem', zIndex: 100, display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <img src="/logo.png" alt="9M2PJU Logo" style={{ height: '50px', width: '50px', borderRadius: '50%', boxShadow: '0 0 15px var(--primary)' }} />
+                <div style={{ fontFamily: 'var(--font-orbitron)', fontSize: '1rem', color: 'var(--primary)', textShadow: '0 0 10px var(--primary)' }}>9M2PJU CONTEST CLOCK</div>
             </div>
 
             {/* UTC MAIN CLOCK */}
@@ -231,29 +254,39 @@ const App = () => {
                     <Sun size={16} style={{ marginRight: '8px' }} />
                     Live Solar Propagation
                 </div>
-                <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ color: 'var(--text-dim)' }}>SFI</span>
-                        <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{solarData.sfi}</span>
+                <div style={{ marginTop: '1rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ color: 'var(--text-dim)', fontSize: '0.8rem' }}>SFI</span>
+                            <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{solarData.sfi}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ color: 'var(--text-dim)', fontSize: '0.8rem' }}>SN</span>
+                            <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{solarData.sn}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ color: 'var(--text-dim)', fontSize: '0.8rem' }}>A-Idx</span>
+                            <span style={{ color: 'var(--secondary)', fontWeight: 'bold' }}>{solarData.a}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ color: 'var(--text-dim)', fontSize: '0.8rem' }}>K-Idx</span>
+                            <span style={{ color: 'var(--secondary)', fontWeight: 'bold' }}>{solarData.k}</span>
+                        </div>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ color: 'var(--text-dim)' }}>SN</span>
-                        <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{solarData.sn}</span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                        {solarData.bands.filter(b => b.time === 'day').map((b, i) => (
+                            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem' }}>
+                                <span style={{ color: 'var(--text-dim)' }}>{b.name}</span>
+                                <span style={{ color: getStatusColor(b.status), fontWeight: 'bold', textTransform: 'uppercase' }}>{b.status}</span>
+                            </div>
+                        ))}
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ color: 'var(--text-dim)' }}>A-Index</span>
-                        <span style={{ color: 'var(--secondary)', fontWeight: 'bold' }}>{solarData.a}</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ color: 'var(--text-dim)' }}>K-Index</span>
-                        <span style={{ color: 'var(--secondary)', fontWeight: 'bold' }}>{solarData.k}</span>
-                    </div>
-                    <div style={{ marginTop: '0.5rem', padding: '0.5rem', background: 'rgba(0, 242, 255, 0.1)', borderRadius: '0.5rem', textAlign: 'center' }}>
-                        <span style={{ color: 'var(--primary)', fontWeight: 'bold', fontSize: '0.9rem' }}>CONDITIONS: {solarData.conditions}</span>
-                    </div>
-                    <div style={{ fontSize: '0.65rem', color: 'var(--text-dim)', textAlign: 'center' }}>
-                        Ref: {solarData.updated} (N0NBH)
-                    </div>
+                </div>
+                <div style={{ marginTop: '1rem', padding: '0.5rem', background: 'rgba(0, 242, 255, 0.1)', borderRadius: '0.5rem', textAlign: 'center' }}>
+                    <span style={{ color: 'var(--primary)', fontWeight: 'bold', fontSize: '0.9rem' }}>CONDITIONS: {solarData.conditions}</span>
+                </div>
+                <div style={{ fontSize: '0.6rem', color: 'var(--text-dim)', textAlign: 'center', marginTop: '0.5rem' }}>
+                    Ref: {solarData.updated} (N0NBH)
                 </div>
             </div>
 
