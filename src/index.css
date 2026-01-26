@@ -122,16 +122,20 @@ body {
     overflow-y: auto;
     height: auto;
   }
-  
-  .clock-section, .local-time-section, .timer-section, .solar-section, .info-section {
+
+  .clock-section,
+  .local-time-section,
+  .timer-section,
+  .solar-section,
+  .info-section {
     grid-column: span 1;
     grid-row: auto;
   }
-  
+
   .clock-time {
     font-size: 4rem;
   }
-  
+
   body {
     overflow: auto;
   }
@@ -154,6 +158,145 @@ body {
   transition: all 0.2s;
 }
 
-.fullscreen-btn:hover {
+.footer {
+  position: absolute;
+  bottom: 0.5rem;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  z-index: 50;
+}
+
+.footer a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.footer a:hover {
+  text-decoration: underline;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 1.5rem;
+  padding: 2.5rem;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 0 50px rgba(0, 242, 255, 0.2);
+}
+
+.modal-header {
+  font-family: var(--font-orbitron);
+  font-size: 1.5rem;
+  color: var(--primary);
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1rem;
+}
+
+.form-group input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  color: var(--text-main);
+  font-family: var(--font-inter);
+  font-size: 1rem;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.btn {
+  flex: 1;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--glass-border);
+  cursor: pointer;
+  font-family: var(--font-orbitron);
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #000;
+  border: none;
+  font-weight: bold;
+}
+
+.btn-primary:hover {
+  filter: brightness(1.2);
+  box-shadow: 0 0 15px var(--primary);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text-main);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.settings-btn {
+  position: absolute;
+  top: 1rem;
+  right: 4rem;
+  /* Adjusted for fullscreen btn */
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--text-main);
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.settings-btn:hover {
   background: var(--glass-border);
+  color: var(--primary);
 }
