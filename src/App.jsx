@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Maximize2, Minimize2, Radio, Trophy, Sun, Info, Settings, Heart, MapPin } from 'lucide-react';
+import { Maximize2, Minimize2, Radio, Trophy, Sun, Info, Settings, Heart, MapPin, Globe } from 'lucide-react';
 import { format, differenceInSeconds } from 'date-fns';
 
 const App = () => {
@@ -13,13 +13,86 @@ const App = () => {
     const [targetDateStr, setTargetDateStr] = useState(() => {
         const saved = localStorage.getItem('targetDate');
         if (saved) return saved;
-        // Default to end of current day
         const tomorrow = new Date();
         tomorrow.setHours(23, 59, 59, 999);
         return tomorrow.toISOString().slice(0, 16);
     });
 
     const [timeLeft, setTimeLeft] = useState('00:00:00');
+    const [location, setLocation] = useState({ lat: null, lon: null, manual: true });
+    const [solarData, setSolarData] = useState({
+        sfi: '...',
+        sn: '...',
+        a: '...',
+        k: '...',
+        updated: 'Fetching...',
+        conditions: '...'
+    });
+
+    // Geolocation Hook
+    useEffect(() => {
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    setLocation({
+                        lat: position.coords.latitude.toFixed(4),
+                        lon: position.coords.longitude.toFixed(4),
+                        manual: false
+                    });
+                },
+                (error) => {
+                    console.log("Geolocation error:", error);
+                    setLocation(prev => ({ ...prev, manual: true }));
+                }
+            );
+        }
+    }, []);
+
+    // Solar Data Fetch Hook
+    useEffect(() => {
+        const fetchSolarData = async () => {
+            try {
+                // Using allOrigins proxy to bypass CORS for HamQSL XML
+                const proxyUrl = "https://api.allorigins.win/get?url=";
+                const targetUrl = encodeURIComponent("https://www.hamqsl.com/solarxml.php");
+                const response = await fetch(proxyUrl + targetUrl);
+                const data = await response.json();
+
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(data.contents, "text/xml");
+
+                const sfi = xmlDoc.getElementsByTagName("solarflux")[0]?.textContent || "...";
+                const sn = xmlDoc.getElementsByTagName("sunspots")[0]?.textContent || "...";
+                const a = xmlDoc.getElementsByTagName("aindex")[0]?.textContent || "...";
+                const k = xmlDoc.getElementsByTagName("kindex")[0]?.textContent || "...";
+                const updated = xmlDoc.getElementsByTagName("updated")[0]?.textContent || "...";
+
+                // Get general conditions from the calculated conditions tag
+                const condTag = xmlDoc.getElementsByTagName("calculatedconditions")[0];
+                let condText = "GOOD";
+                if (condTag) {
+                    const firstCond = condTag.getElementsByTagName("condition")[0]?.textContent || "";
+                    condText = firstCond.split(":")[1]?.trim() || "GOOD";
+                }
+
+                setSolarData({
+                    sfi: sfi.trim(),
+                    sn: sn.trim(),
+                    a: a.trim(),
+                    k: k.trim(),
+                    updated: updated.trim(),
+                    conditions: condText.toUpperCase()
+                });
+            } catch (error) {
+                console.error("Error fetching solar data:", error);
+                setSolarData(prev => ({ ...prev, updated: "Offline", conditions: "UNKNOWN" }));
+            }
+        };
+
+        fetchSolarData();
+        const interval = setInterval(fetchSolarData, 1800000); // Update every 30 mins
+        return () => clearInterval(interval);
+    }, []);
 
     useEffect(() => {
         const timer = setInterval(() => {
@@ -70,30 +143,24 @@ const App = () => {
         }
     };
 
-    const solarData = {
-        sfi: 145,
-        sn: 82,
-        a: 12,
-        k: 2
-    };
-
     const operatorNote = useMemo(() => {
         const hour = time.getUTCHours();
-        const { sfi, k } = solarData;
+        const kValue = parseInt(solarData.k);
+        const sfiValue = parseInt(solarData.sfi);
 
-        let note = "";
-        if (k > 4) {
-            note = "⚠️ Geomagnetic storm detected (K=" + k + "). Expect degraded HF conditions and increased noise. Try lower bands.";
-        } else if (sfi > 150) {
-            note = "🚀 Solar Flux is high (" + sfi + ")! Excellent 10m and 12m openings are likely. Go hunt those pileups!";
-        } else if (hour >= 22 || hour <= 2) {
-            note = "🌙 Gray line propagation active. Check 40m and 80m for long-distance openings as the terminator passes.";
-        } else if (hour >= 10 && hour <= 14) {
-            note = "☀️ Mid-day absorption might be high. 20m and 15m should be your workhorses right now.";
+        if (isNaN(kValue) || isNaN(sfiValue)) return "🔭 Weathering solar data... Stay tuned.";
+
+        if (kValue > 4) {
+            return `⚠️ High Geostorm (K=${kValue}). Expect high HF noise. Focus on CW or look for aurora openings on VHF!`;
+        } else if (sfiValue > 150) {
+            return `🚀 SFI is ${sfiValue}! 10m and 12m should be wide open. DX pileups are calling!`;
+        } else if (hour >= 22 || hour <= 1) {
+            return "🌓 Gray line in effect. Check 40m/80m for long-haul DX near the sunrise/sunset terminator.";
+        } else if (hour >= 10 && hour <= 15) {
+            return "☀️ 20m and 15m are likely your best performers during the day. Monitor 10m for sporadic openings.";
         } else {
-            note = "📡 Conditions are stable. Keep an eye on the 10m band opening. Solar activity is rising. Good luck!";
+            return "📡 Conditions are stable. Solar cycle is progressing well. Keep an ear out for weak signals!";
         }
-        return note;
     }, [time, solarData]);
 
     return (
@@ -140,7 +207,7 @@ const App = () => {
             <div className="glass-card solar-section">
                 <div className="clock-label">
                     <Sun size={16} style={{ marginRight: '8px' }} />
-                    Solar Propagation
+                    Live Solar Propagation
                 </div>
                 <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -159,8 +226,11 @@ const App = () => {
                         <span style={{ color: 'var(--text-dim)' }}>K-Index</span>
                         <span style={{ color: 'var(--secondary)', fontWeight: 'bold' }}>{solarData.k}</span>
                     </div>
-                    <div style={{ marginTop: '1rem', padding: '0.5rem', background: 'rgba(0, 242, 255, 0.1)', borderRadius: '0.5rem', textAlign: 'center' }}>
-                        <span style={{ color: 'var(--primary)', fontWeight: 'bold', fontSize: '0.9rem' }}>CONDITIONS: {solarData.k < 3 ? 'GOOD' : 'FAIR'}</span>
+                    <div style={{ marginTop: '0.5rem', padding: '0.5rem', background: 'rgba(0, 242, 255, 0.1)', borderRadius: '0.5rem', textAlign: 'center' }}>
+                        <span style={{ color: 'var(--primary)', fontWeight: 'bold', fontSize: '0.9rem' }}>CONDITIONS: {solarData.conditions}</span>
+                    </div>
+                    <div style={{ fontSize: '0.65rem', color: 'var(--text-dim)', textAlign: 'center' }}>
+                        Ref: {solarData.updated} (N0NBH)
                     </div>
                 </div>
             </div>
@@ -182,12 +252,15 @@ const App = () => {
                     </div>
                     <div className="glass-card" style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)' }}>
                         <div className="clock-label" style={{ fontSize: '0.7rem' }}>LOCATION INFO</div>
-                        <div style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>Station OJ03</div>
+                        <div style={{ fontSize: '1.1rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <Globe size={14} color="var(--primary)" />
+                            {location.lat ? `${location.lat}°N, ${location.lon}°E` : "Awaiting GPS..."}
+                        </div>
                     </div>
                 </div>
                 <div style={{ marginTop: '1.5rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1rem' }}>
                     <div className="clock-label" style={{ fontSize: '0.8rem' }}>Operator Note:</div>
-                    <p style={{ fontSize: '1rem', color: 'var(--text-main)', marginTop: '0.5rem', lineHeight: '1.4' }}>
+                    <p style={{ fontSize: '1.1rem', color: 'var(--text-main)', marginTop: '0.5rem', lineHeight: '1.4' }}>
                         {operatorNote}
                     </p>
                 </div>
