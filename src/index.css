@@ -121,6 +121,8 @@ body {
     grid-template-rows: auto;
     overflow-y: auto;
     height: auto;
+    padding: 1rem;
+    gap: 1rem;
   }
 
   .clock-section,
@@ -130,14 +132,50 @@ body {
   .info-section {
     grid-column: span 1;
     grid-row: auto;
+    padding: 1.25rem;
+  }
+  
+  /* Fluid typography for perfect balance on any mobile width */
+  .clock-time {
+    font-size: clamp(3rem, 15vw, 6rem);
+    margin: 0.5rem 0;
   }
 
-  .clock-time {
-    font-size: 4rem;
+  .local-time {
+    font-size: clamp(2rem, 10vw, 3rem);
+  }
+
+  .timer-display {
+    font-size: clamp(2rem, 10vw, 3rem);
+  }
+
+  .clock-label {
+    font-size: 0.85rem;
   }
 
   body {
     overflow: auto;
+  }
+
+  /* Adjust header logo and title for mobile */
+  .dashboard > div[style*="left: 1rem"] {
+    top: 0.75rem !important;
+    left: 1rem !important;
+  }
+  
+  .dashboard > div[style*="left: 1rem"] img {
+    height: 40px !important;
+    width: 40px !important;
+  }
+
+  .dashboard > div[style*="left: 1rem"] div {
+    font-size: 0.9rem !important;
+  }
+  
+  /* Adjust settings buttons for mobile */
+  .dashboard > div[style*="right: 1rem"] {
+    top: 0.75rem !important;
+    right: 0.75rem !important;
   }
 }
 
