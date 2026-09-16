@@ -72,6 +72,6 @@ Ideal for emergency communication drills:
 ---
 
 > [!TIP]
-> **Station Link**: [time.hamradio.my](https://time.hamradio.my)
+> **Station Link**: [contest.hamradio.my](https://contest.hamradio.my)
 
 Made with ❤️ by [9M2PJU](https://hamradio.my) | 73!
